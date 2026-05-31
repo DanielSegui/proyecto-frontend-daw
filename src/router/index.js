@@ -1,8 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { useAuthStore } from '@/modules/auth/store';
+import { useAuthStore } from '@/modules/auth/auth';
+import CatalogView from '@/views/CatalogView.vue';
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
+
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0, behavior: 'smooth' } // El 'smooth' hace que suba con una transición suave elegante
+    }
+  },
+
   routes: [
     {
       path: '/',
@@ -54,6 +64,36 @@ const router = createRouter({
       path: '/favoritos',
       name: 'favoritos',
       component: () => import('@/views/FavoritosView.vue')
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/LoginView.vue')
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue')
+    },
+    {
+      path: '/perfil',
+      name: 'perfil',
+      component: () => import('../views/ProfileView.vue')
+    },
+    {
+      path: '/formulario',
+      name: 'formulario',
+      component: () => import('../views/ContactoView.vue')
+    },
+    {
+      path: '/reserva',
+      name: 'reserva',
+      component: () => import('../views/ReservaView.vue')
+    },
+    {
+      path: '/catalogo',
+      name: 'catalogo',
+      component: () => import('@/views/CatalogView.vue')
     },
   ]
 });

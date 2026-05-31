@@ -1,0 +1,136 @@
+/* src/assets/contactes.css */
+
+/* Adaptamos tu centrado del body original a un wrapper para SPA */
+.contacto-page-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: 75vh;
+  width: 100%;
+  /* Despega del header de la web y empuja 100px el footer hacia abajo */
+  margin: 60px auto 100px auto; 
+  box-sizing: border-box;
+}
+
+.container {
+  background-color: #222; 
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.7);
+  width: 100% !important;
+  
+  /* Le añadimos el !important para asegurarnos de que ninguna otra regla te lo pise */
+  max-width: 550px !important; 
+}
+
+/* Tu h1 original intacto */
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1.8em;
+  color: goldenrod;
+}
+
+/* Tu .form-group original intacto */
+.form-group {
+  margin-bottom: 20px;
+}
+
+/* Tu label original intacto */
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+/* Tu input original intacto */
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #111;
+  color: goldenrod;
+}
+
+input::placeholder {
+  color: #aaa;
+}
+
+/* Tu button original intacto */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #1a1a1a;
+  color: goldenrod;
+  border: solid;
+  border-color: goldenrod;
+  border-radius: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+button:hover {
+  background-color: goldenrod;
+  color: #1a1a1a;
+}
+
+/* --- Añadidos extra para adaptar la lógica de errores y éxito del PHP anterior --- */
+.simple-checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+}
+
+.simple-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: goldenrod;
+}
+
+.simple-checkbox label {
+  display: inline;
+  font-weight: normal;
+  color: #fff;
+  margin-bottom: 0;
+}
+
+.error-list {
+  background-color: rgba(255, 68, 68, 0.1);
+  border: 1px solid #ff4444;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.error-list ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.error-list li {
+  color: #ff4444;
+  font-size: 0.9em;
+  text-align: left;
+  margin-bottom: 5px;
+}
+
+.error-list li:last-child {
+  margin-bottom: 0;
+}
+
+.success-box {
+  text-align: center;
+}
+
+.success-box h2 {
+  color: #28a745;
+  margin-bottom: 15px;
+}
+
+.success-box p {
+  color: #fff;
+  margin-bottom: 25px;
+}

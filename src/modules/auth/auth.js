@@ -2,9 +2,17 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export const useAuthStore = defineStore('auth', () => {
-  // Estado: datos que queremos recordar
-  const user = ref(JSON.parse(localStorage.getItem('user')) || null);
-  const token = ref(localStorage.getItem('token') || null);
+  // 1. TRUCO TEMPORAL: Forzamos un objeto de usuario con rol 'admin'
+  // (Originalmente tenías: ref(JSON.parse(localStorage.getItem('user')) || null);)
+  const user = ref({
+    name: 'Daniel Admin Test',
+    email: 'admin@dnmotors.com',
+    role: 'admin' // <-- Esto es lo que lee tu router guard y tu useRole.js
+  });
+
+  // 2. TRUCO TEMPORAL: Forzamos un token cualquiera para simular que estás logueado
+  // (Originalmente tenías: ref(localStorage.getItem('token') || null);)
+  const token = ref('token-falso-de-prueba-frontend');
 
   // Getters: propiedades calculadas
   const isAuthenticated = computed(() => !!token.value);

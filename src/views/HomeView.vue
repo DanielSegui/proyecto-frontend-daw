@@ -78,7 +78,7 @@
         <button class="carousel-btn prev" @click="moveCarousel(-1)">←</button>
         <button class="carousel-btn next" @click="moveCarousel(1)">→</button>
       </div>
-      <button class="btn" @click="$router.push('/contacto')">Contáctanos</button>
+      <button class="btn" @click="$router.push('/formulario')">Contáctanos</button>
     </section>
   </main>
 </template>

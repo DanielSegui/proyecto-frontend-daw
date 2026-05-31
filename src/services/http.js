@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '@/modules/auth/store'; // Lo crearemos después
+import { useAuthStore } from '@/modules/auth/auth'; // Lo crearemos después
 
 const http = axios.create({
   baseURL: 'http://tu-backend-laravel.test/api', // Cambia por tu URL real

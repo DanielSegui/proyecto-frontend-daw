@@ -8,11 +8,11 @@
       </div>
     </section>
 
-    <section class="coches">
+    <section class="coches"> 
       <div class="search-section" style="padding: 30px 20px; text-align: center; background: #0D0F12;">
         <div style="max-width: 600px; margin: 0 auto; position: relative;">
           <input 
-            v-model="searchQuery" 
+            v-model="searchQuery"
             type="text" 
             placeholder="Busca tu modelo ideal..." 
             style="width: 100%; padding: 15px 25px; border-radius: 50px; border: 2px solid #b8860b; background: #111; color: white; font-family: 'Montserrat', sans-serif; outline: none; transition: 0.3s; box-shadow: 0 0 15px rgba(184, 134, 11, 0.2);"
@@ -43,10 +43,9 @@
 import { ref, computed } from 'vue';
 import VehicleCard from '@/components/VehicleCard.vue';
 
-// Estado para el texto del buscador
 const searchQuery = ref('');
 
-// Listado de datos (Simulando lo que en el Sprint 5 vendrá de la API de Laravel)
+// Listado de coches
 const coches = ref([
   { id: 1, name: 'Porsche 911 Carrera GTS', image: '/imgs/porsche911.webp', link: '/coches/porsche911' },
   { id: 2, name: 'Lamborghini Aventador', image: '/imgs/lambo.jpg', link: '/coches/laventador' },
@@ -56,7 +55,7 @@ const coches = ref([
   { id: 6, name: 'Koenigsegg Jesko', image: '/imgs/jesko.jpg', link: '/coches/jesko' }
 ]);
 
-// Filtro reactivo computado
+// Filtro reactivo igual al de motos
 const filteredVehicles = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();
   if (!query) return coches.value;

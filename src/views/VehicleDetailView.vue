@@ -18,7 +18,17 @@
         </div>
 
         <div class="acciones-compra">
-          <button class="btn-reserva">RESERVAR AHORA</button>
+          <RouterLink 
+            :to="{ 
+              path: '/reserva', 
+              query: { modelo: vehicle.name, precio: vehicle.price } 
+            }" 
+            class="btn-reserva"
+            style="text-decoration: none; display: inline-block; text-align: center; box-sizing: border-box;"
+          >
+            RESERVAR AHORA
+          </RouterLink>
+
           <button 
             @click="toggleFavorito" 
             class="btn-favorito" 
@@ -126,7 +136,6 @@ const toggleFavorito = () => {
 
 // --- MECÁNICA: COMENTARIOS REACTIVOS ---
 const cargarComentariosSimulados = () => {
-  // Inicializamos un par de comentarios en memoria local según el vehículo elegido
   comentarios.value = [
     {
       id: 1,
@@ -141,7 +150,7 @@ const cargarComentariosSimulados = () => {
 const agregarComentario = () => {
   const nuevo = {
     id: Date.now(),
-    usuario: "Usuario_Sesion", // Cambiará en el futuro con tu Auth Store de Pinia
+    usuario: "Usuario_Sesion", 
     estrellas: nuevaValoracion.value,
     texto: nuevoTextoComentario.value,
     fecha: new Date().toISOString().split('T')[0]

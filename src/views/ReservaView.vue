@@ -1,0 +1,210 @@
+<template>
+  <main class="reserva-page-wrapper">
+    <div class="reserva-container">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <img src="/imgs/logo3.png" alt="D&N Motors" style="width: 120px; margin-bottom: 20px;">
+        <h1 style="color: goldenrod; font-size: 2rem; margin: 0;">{{ headerReserva }}</h1>
+        <p style="color: #888;">Complete el formulario oficial de D&N Motors para bloquear la unidad.</p>
+      </div>
+      
+      <div class="info-pago">
+        <p style="margin: 0; font-size: 0.9rem;">Vehículo: <strong style="color: white;">{{ modeloVehiculo }}</strong></p>
+        <p style="margin: 5px 0 0 0; font-size: 1.1rem; color: goldenrod;">Importe: <strong>{{ precioVehiculo }}</strong></p>
+      </div>
+
+      <form @submit.prevent="generarPDF" id="formReserva">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div>
+            <label class="reserva-label">Nombre del Titular</label>
+            <input type="text" v-model="nombreCliente" class="reserva-input" placeholder="Nombre completo" required>
+          </div>
+          <div>
+            <label class="reserva-label">DNI / Pasaporte</label>
+            <input type="text" v-model="dniCliente" class="reserva-input" placeholder="Documento ID" required>
+          </div>
+        </div>
+
+        <label class="reserva-label">Correo Electrónico</label>
+        <input type="email" v-model="emailCliente" class="reserva-input" placeholder="ejemplo@correo.com" required>
+
+        <label class="reserva-label">Teléfono de Contacto</label>
+        <input type="tel" v-model="telCliente" class="reserva-input" placeholder="+34 600 000 000" required>
+
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="aceptarTerminos" required>
+          <span>Acepto que este documento no es un contrato de compra final, sino una reserva de prioridad sujeta a verificación de stock.</span>
+        </label>
+        
+        <button type="submit" class="btn-reserva">
+          DESCARGAR COMPROBANTE OFICIAL (PDF)
+        </button>
+      </form>
+      
+      <a href="#" @click.prevent="cancelarOperacion" class="btn-cancelar-link">✕ Cancelar operación</a>
+    </div>
+  </main>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { jsPDF } from 'jspdf'
+
+const route = useRoute()
+const router = useRouter()
+
+// Inputs reactivos del cliente
+const nombreCliente = ref('')
+const dniCliente = ref('')
+const emailCliente = ref('')
+const telCliente = ref('')
+const aceptarTerminos = ref(false)
+
+// Estados dinámicos del vehículo cargados desde la URL
+const modeloVehiculo = ref('Vehículo no seleccionado')
+const precioVehiculo = ref('Consultar Precio')
+
+// Diccionario de respaldo (backup) original tuyo
+const preciosBackup = {
+  "Ferrari F8 Tributo": "325.000 €",
+  "Porsche 911 Carrera GTS": "180.000 €",
+  "Lamborghini Aventador": "460.000 €",
+  "Ducati Panigale V4 R": "32.000 €",
+  "Koenigsegg Jesko": "2.850.000 €",
+  "Ferrari 250 GTO": "Bajo Petición"
+}
+
+// Carga inicial mediante el ciclo de vida de Vue
+onMounted(() => {
+  const modeloUrl = route.query.modelo
+  const precioUrl = route.query.precio
+
+  if (modeloUrl) {
+    modeloVehiculo.value = modeloUrl
+  }
+  
+  precioVehiculo.value = precioUrl || preciosBackup[modeloVehiculo.value] || "Consultar Precio"
+})
+
+// Control dinámico del encabezado
+const headerReserva = computed(() => {
+  return "Reserva: " + (modeloVehiculo.value.length > 20 ? "Vehículo" : modeloVehiculo.value)
+})
+
+// Tu función original de renderizado del PDF premium integrada en el ecosistema Vue
+const generarPDF = () => {
+  if (!nombreCliente.value || !dniCliente.value || !emailCliente.value) { 
+    alert("Por favor, rellene todos los campos antes de generar el certificado.")
+    return 
+  }
+
+  const doc = new jsPDF()
+  const refReserva = "DN-RES-" + Math.floor(Math.random() * 1000000)
+
+  // --- 1. FONDO Y MARCO ---
+  doc.setDrawColor(218, 165, 32)
+  doc.setLineWidth(1)
+  doc.rect(5, 5, 200, 287)
+
+  // --- 2. CABECERA PREMIUM ---
+  doc.setFillColor(15, 15, 15)
+  doc.rect(0, 0, 210, 50, 'F')
+  
+  doc.setTextColor(218, 165, 32)
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(30)
+  doc.text("D&N MOTORS", 105, 25, { align: "center" })
+  
+  doc.setFontSize(10)
+  doc.setFont("helvetica", "normal")
+  doc.setTextColor(150, 150, 150)
+  doc.text("SPECIALIST IN SUPERCARS & CLASSIC RACING", 105, 35, { align: "center" })
+
+  // --- 3. TÍTULO DEL DOCUMENTO ---
+  doc.setTextColor(0, 0, 0)
+  doc.setFontSize(18)
+  doc.setFont("helvetica", "bold")
+  doc.text("CERTIFICADO DE RESERVA EXCLUSIVA", 105, 70, { align: "center" })
+  
+  doc.setDrawColor(218, 165, 32)
+  doc.setLineWidth(0.5)
+  doc.line(60, 75, 150, 75)
+
+  // --- 4. DATOS DE LA RESERVA ---
+  doc.setFillColor(240, 240, 240)
+  doc.rect(20, 85, 170, 20, 'F')
+  doc.setFontSize(11)
+  doc.setTextColor(50, 50, 50)
+  doc.text(`ID RESERVA: ${refReserva}`, 30, 97)
+  doc.text(`FECHA: ${new Date().toLocaleDateString()}`, 130, 97)
+
+  // --- 5. INFORMACIÓN DEL TITULAR ---
+  doc.setFontSize(13)
+  doc.setTextColor(184, 134, 11)
+  doc.text("DATOS DEL TITULAR", 20, 120)
+  
+  doc.setTextColor(0, 0, 0)
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(11)
+  doc.text(`Nombre completo:`, 20, 130)
+  doc.setFont("helvetica", "bold")
+  doc.text(nombreCliente.value.toUpperCase(), 60, 130)
+  
+  doc.setFont("helvetica", "normal")
+  doc.text(`Documento ID:`, 20, 138)
+  doc.text(dniCliente.value, 60, 138)
+  
+  doc.text(`Email contacto:`, 20, 146)
+  doc.text(emailCliente.value.toLowerCase(), 60, 146)
+
+  // --- 6. DETALLES DEL VEHÍCULO ---
+  doc.setFontSize(13)
+  doc.setTextColor(184, 134, 11)
+  doc.text("VEHÍCULO RESERVADO", 20, 165)
+  
+  doc.setDrawColor(200, 200, 200)
+  doc.rect(20, 170, 170, 35)
+  
+  doc.setFontSize(22)
+  doc.setTextColor(0, 0, 0)
+  doc.setFont("helvetica", "bold")
+  doc.text(modeloVehiculo.value, 105, 185, { align: "center" })
+  
+  doc.setFontSize(14)
+  doc.setTextColor(184, 134, 11)
+  doc.text(`PRECIO ESTIMADO: ${precioVehiculo.value}`, 105, 198, { align: "center" })
+
+  // --- 7. SELLOS Y FIRMAS ---
+  doc.setDrawColor(218, 165, 32)
+  doc.setLineWidth(1)
+  doc.circle(160, 240, 15)
+  doc.setFontSize(7)
+  doc.text("D&N MOTORS", 160, 238, { align: "center" })
+  doc.text("OFFICIAL", 160, 242, { align: "center" })
+  doc.text("VERIFIED", 160, 246, { align: "center" })
+
+  doc.setDrawColor(150, 150, 150)
+  doc.line(30, 250, 80, 250)
+  doc.setFontSize(9)
+  doc.text("Firma del Interesado", 40, 255)
+
+  // --- 8. PIE DE PÁGINA ---
+  doc.setFontSize(8)
+  doc.setTextColor(150, 150, 150)
+  const disclaimer = "Este certificado asegura la prioridad de compra sobre la unidad mencionada por un periodo de 72 horas. D&N Motors se reserva el derecho de anulación si los datos proporcionados son falsos."
+  const splitDisclaimer = doc.splitTextToSize(disclaimer, 160)
+  doc.text(splitDisclaimer, 105, 275, { align: "center" })
+  
+  doc.text("www.dnmotors.com | Alcoi, España", 105, 288, { align: "center" })
+
+  doc.save(`Certificado_Reserva_${modeloVehiculo.value.replace(/\s+/g, '_')}.pdf`)
+}
+
+const cancelarOperacion = () => {
+  router.push('/')
+}
+</script>
+
+<style scoped>
+@import '@/assets/reserva.css';
+</style>
