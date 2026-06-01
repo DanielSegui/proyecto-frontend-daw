@@ -2,7 +2,7 @@
   <Navbar />
 
   <RouterView />
-
+  <ChatBot />
   <Footer />
 </template>
 
@@ -12,6 +12,7 @@ import { RouterView } from 'vue-router';
 import Navbar from '@/components/Navbar.vue';
 import Footer from '@/components/Footer.vue';
 import { useAuthStore } from '@/modules/auth/auth';
+import ChatBot from './views/ChatBot.vue';
 // Opcional: Si vols assegurar que l'estat es carregui bé en refrescar
 const authStore = useAuthStore();
 
