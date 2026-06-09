@@ -42,20 +42,13 @@
 <script setup>
 import { ref, computed } from 'vue';
 import VehicleCard from '@/components/VehicleCard.vue';
+import { vehiclesData } from '@/data/vehicles.js';
 
 const searchQuery = ref('');
 
-// Listado de coches clásicos extraído exactamente de tu HTML original
-const clasicos = ref([
-  { id: 1, name: 'Ferrari 250 GTO', image: '/imgs/ferrari250.jpg', link: '/clasicos/ferrari250' },
-  { id: 2, name: 'Mercedes 300 SL Gullwing', image: '/imgs/mercedes300G.webp', link: '/clasicos/mercedes300' },
-  { id: 3, name: 'Porsche 356', image: '/imgs/porsche356.jpg', link: '/clasicos/porsche356' },
-  { id: 4, name: 'Shelby Cobra', image: '/imgs/shelby.webp', link: '/clasicos/shelby' },
-  { id: 5, name: 'Jaguar E-Type', image: '/imgs/jaguarE.webp', link: '/clasicos/jaguar' },
-  { id: 6, name: 'Ford Mustang 1964', image: '/imgs/mustang1964.jpg', link: '/clasicos/mustang' }
-]);
+// Filtrem per categoria "Coches Clásicos"
+const clasicos = ref(vehiclesData.filter(v => v.category === 'Coches Clásicos'));
 
-// Filtro reactivo sin usar JS nativo sucio
 const filteredClasicos = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();
   if (!query) return clasicos.value;

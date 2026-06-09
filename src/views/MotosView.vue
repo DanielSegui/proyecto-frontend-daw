@@ -42,20 +42,13 @@
 <script setup>
 import { ref, computed } from 'vue';
 import VehicleCard from '@/components/VehicleCard.vue';
+import { vehiclesData } from '@/data/vehicles.js';
 
 const searchQuery = ref('');
 
-// Listado de motos extraído exactamente de tu HTML original
-const motos = ref([
-  { id: 1, name: 'Ducati Panigale V4', image: '/imgs/ducatip.webp', link: '/motos/ducatiV4' },
-  { id: 2, name: 'Kawasaki Ninja H2R', image: '/imgs/kninja.jpg', link: '/motos/kninja' },
-  { id: 3, name: 'BMW S1000RR', image: '/imgs/motobmw.webp', link: '/motos/bmwmoto' },
-  { id: 4, name: 'Yamaha R1M', image: '/imgs/yamahaR1M.jpeg', link: '/motos/yamaha' },
-  { id: 5, name: 'Honda CBR1000RR-R', image: '/imgs/Hcbr.jpg', link: '/motos/honda' },
-  { id: 6, name: 'Aprilia RSV4', image: '/imgs/aprilia.jpg', link: '/motos/aprilia' }
-]);
+// Filtrem per categoria "Motos Superdeportivas"
+const motos = ref(vehiclesData.filter(v => v.category === 'Motos Superdeportivas'));
 
-// Filtro reactivo sin usar JS nativo sucio
 const filteredMotos = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();
   if (!query) return motos.value;

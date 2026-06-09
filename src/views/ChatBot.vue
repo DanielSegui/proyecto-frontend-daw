@@ -40,8 +40,16 @@ const sendMessage = async () => {
 
     try {
         const response = await axios.post(import.meta.env.VITE_N8N_CHAT_URL, { message: text });
-        messages.value.push({ role: 'bot', text: response.data.output });
+        
+        // Mirem què arriba realment
+        console.log("Dades rebudes del n8n:", response.data);
+
+        // Provem d'agafar el camp output, si no, intentem agafar el text directament
+        const botText = response.data.output || response.data.text || JSON.stringify(response.data);
+        
+        messages.value.push({ role: 'bot', text: botText });
     } catch (error) {
+        console.error("Error:", error);
         messages.value.push({ role: 'bot', text: 'Error de connexió.' });
     }
 };

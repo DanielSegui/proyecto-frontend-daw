@@ -105,10 +105,11 @@ const nuevaValoracion = ref(5);
 const nuevoTextoComentario = ref('');
 const comentarios = ref([]);
 
-// Cargar o cambiar de vehículo dinámicamente
 const inicializarVehiculo = () => {
   vehicleId.value = route.params.id;
-  vehicle.value = vehiclesData[vehicleId.value];
+  
+  // Ara busquem a l'array l'element que coincideixi amb l'id
+  vehicle.value = vehiclesData.find(v => v.id === vehicleId.value);
   
   if (vehicle.value) {
     comprobarFavorito();

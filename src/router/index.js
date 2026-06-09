@@ -45,19 +45,9 @@ const router = createRouter({
       name: 'forbidden',
       component: () => import('@/views/ForbiddenView.vue') // <-- ¡Cambiado a @/views/...!
     },
-    {
-      path: '/coches/:id',
-      name: 'coche-detalle',
-      component: () => import('@/views/VehicleDetailView.vue')
-    },
-    {
-      path: '/motos/:id',
-      name: 'moto-detalle',
-      component: () => import('@/views/VehicleDetailView.vue')
-    },
-    {
-      path: '/clasicos/:id',
-      name: 'clasico-detalle',
+   {
+      path: '/vehicles/:id',
+      name: 'vehicle-detalle',
       component: () => import('@/views/VehicleDetailView.vue')
     },
     {
