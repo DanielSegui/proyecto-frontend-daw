@@ -1,15 +1,16 @@
 import axios from 'axios';
-import { useAuthStore } from '@/modules/auth/auth'; // Lo crearemos después
+import { useAuthStore } from '@/modules/auth/auth'; 
 
 const http = axios.create({
-  baseURL: 'http://tu-backend-laravel.test/api', // Cambia por tu URL real
+  // AQUESTA LÍNIA ÉS LA MÀGICA:
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
 
-// Interceptor para añadir el token automáticamente
 http.interceptors.request.use((config) => {
   const authStore = useAuthStore();
   if (authStore.token) {

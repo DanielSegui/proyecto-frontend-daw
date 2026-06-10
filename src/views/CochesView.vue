@@ -41,14 +41,23 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import VehicleCard from '@/components/VehicleCard.vue';
-import { vehiclesData } from '@/data/vehicles.js';
+import api from '@/api'; // La instància d'Axios que vam crear abans
 
 const searchQuery = ref('');
+const coches = ref([]); // Comencem amb l'array buit
 
-// Filtrem per categoria "Coches de Lujo"
-const coches = ref(vehiclesData.filter(v => v.category === 'Coches de Lujo'));
+// Carreguem les dades del backend només quan el component es munta
+onMounted(async () => {
+  try {
+    const response = await api.get('/vehicles');
+    // Filtrem la categoria aquí o directament al backend (recomanat)
+    coches.value = response.data.filter(v => v.category === 'Coches de Lujo');
+  } catch (error) {
+    console.error("Error al carregar els vehicles:", error);
+  }
+});
 
 const filteredVehicles = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();
