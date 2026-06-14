@@ -1,11 +1,30 @@
 services:
+  # El teu frontend actual
   frontend:
     build: ./frontend
     restart: always
-    ports:
-      - "8080:80"
     networks:
       - app-network
+
+  # El nou servei de Nginx
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"      # Per al trànsit normal
+      - "443:443"    # Per a HTTPS
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./proxy/www:/var/www/certbot
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - app-network
+
+  # Certbot per obtenir el certificat
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./proxy/www:/var/www/certbot
+      - ./letsencrypt:/etc/letsencrypt
 
 networks:
   app-network:
