@@ -1,0 +1,12 @@
+services:
+  frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
