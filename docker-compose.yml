@@ -1,39 +1,12 @@
-version: '3.8'
-
 services:
-  # El teu Vue (compilat amb Nginx)
   frontend:
-    build: ./frontend  # Assegura't que el Dockerfile estigui dins la carpeta frontend
+    build: ./frontend
+    restart: always
     ports:
       - "8080:80"
-    networks:
-      - app-network
-
-  # El backend del teu company
-  backend:
-    build: ./backend
-    networks:
-      - app-network
-    environment:
-      - DB_HOST=db
-      - DB_DATABASE=proyecto_db
-    depends_on:
-      - db
-
-  # La Base de Dades
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: proyecto_db
-      MYSQL_ROOT_PASSWORD: password
-    volumes:
-      - db_data:/var/lib/mysql
     networks:
       - app-network
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  db_data:
