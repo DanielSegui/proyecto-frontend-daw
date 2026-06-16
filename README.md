@@ -1,17 +1,76 @@
-# D&N Motors - Frontend (Vue)
+# Frontend: D&N Motors
 
-## Descripció
-SPA (Single Page Application) desenvolupada amb Vue 3, Pinia i Axios. Aquest projecte és el frontend del sistema D&N Motors i es comunica amb una API REST Laravel externa.
+Aquest és el repositori del frontend per a **D&N Motors**. L'aplicació utilitza una arquitectura moderna basada en microserveis desacoblats, servida mitjançant un contenidor **Nginx** que actua com a **Proxy Invers** i gestor SSL per garantir connexions segures.
 
-## Configuració del Desenvolupament
-- **Requisits:** Node.js 20+ i Docker.
-- **Instruccions:** 
-  1. Copia el fitxer `.env.example` a `.env` i configura `VITE_API_URL`.
-  2. Executa `docker-compose up --build`.
-- **Arquitectura:**
-  - `src/services/`: Capa de comunicació amb l'API (Axios + Interceptors).
-  - `src/modules/auth/`: Gestió d'estat i autenticació amb Pinia.
-  - `src/components/`: Components reutilitzables seguint criteris d'accessibilitat.
+---
 
-## Integració CI/CD
-Aquest repositori disposa d'un procés automatitzat per al build de producció (Nginx) via Docker.
+## 🏗 Arquitectura del Sistema
+
+El sistema es basa en contenidors Docker que s'orquestren per separar la lògica de presentació (**Frontend**) de la lògica de dades (**Backend**), amb **Nginx** gestionant la seguretat i el trànsit.
+
+---
+
+## 🛠 Configuració Tècnica (Docker Compose)
+
+Tota la infraestructura es desplega mitjançant `docker-compose.yml`. Utilitzem una **xarxa compartida** (`app-network`) que permet que els serveis es comuniquin pel seu nom intern de manera segura.
+
+```yaml
+services:
+  frontend:
+    build: ./frontend
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./proxy/www:/var/www/certbot
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+---
+
+## 🔐 Configuració de Seguretat (Nginx SSL)
+
+Hem configurat l'Nginx amb una prioritat absoluta per al repte de Let's Encrypt (**ACME Challenge**), garantint renovacions automàtiques sense desconnectar el servei.
+
+```nginx
+server {
+    listen 80;
+    server_name www.projecte07.ddaw.es;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+```
+
+---
+
+## 🚀 Desplegament i CI/CD
+
+El projecte està preparat per a un entorn de producció amb:
+
+* **SSL Automàtic:** Certificats generats per Certbot mitjançant webroot.
+* **CI/CD:** Pipeline en desenvolupament a GitHub Actions per automatitzar el desplegament al servidor AWS via SSH.
+
+---
+
+## 🔗 Integració
+
+* **Backend API:** Enllaç al repositori del Backend.
+* **Status:** HTTPS actiu i serveis desacoblats.
