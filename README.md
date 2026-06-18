@@ -98,14 +98,33 @@ server {
     listen 80;
     server_name www.projecte07.ddaw.es;
 
+    # Mantenim el repte per a futures renovacions automàtiques
     location ^~ /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
 
+    # Redirecció automàtica a HTTPS
     location / {
         return 301 https://$host$request_uri;
     }
 }
+
+server {
+    listen 443 ssl;
+    server_name www.projecte07.ddaw.es;
+
+    ssl_certificate /etc/letsencrypt/live/www.projecte07.ddaw.es/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.projecte07.ddaw.es/privkey.pem;
+
+    location / {
+        proxy_pass http://frontend:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect off;
+    }
+}
+
 ```
 
 ---
