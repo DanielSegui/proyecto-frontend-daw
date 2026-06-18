@@ -50,11 +50,14 @@ Tota la infraestructura es desplega mitjançant `docker-compose.yml`. Utilitzem 
 
 ```yaml
 services:
+  # El frontend
   frontend:
     build: ./frontend
+    restart: always
     networks:
       - app-network
 
+  # El servei de Nginx
   nginx:
     image: nginx:alpine
     ports:
@@ -66,10 +69,22 @@ services:
       - ./letsencrypt:/etc/letsencrypt
     networks:
       - app-network
+    depends_on:
+      - frontend
+
+  # Certbot per obtenir el certificat
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./proxy/www:/var/www/certbot
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - app-network
 
 networks:
   app-network:
     driver: bridge
+
 ```
 
 ---
