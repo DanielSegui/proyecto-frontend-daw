@@ -46,24 +46,35 @@
     <section class="reviews-section">
       <h2 class="gold-title">Opiniones de Clientes</h2>
       
-      <form @submit.prevent="agregarComentario">
-        <div class="rating-input">
-          <span 
-            v-for="star in [5, 4, 3, 2, 1]" 
-            :key="star"
-            class="star" 
-            :class="{ 'active': star <= nuevaValoracion }"
-            @click="nuevaValoracion = star"
-          >★</span>
-        </div>
-        <textarea 
-            id="commentText" 
-            v-model="nuevoTextoComentario" 
-            placeholder="Escribe tu reseña como experto..." 
-            required
-        ></textarea>
-        <button type="submit" class="btn-reserva btn-small">Publicar Reseña</button>
-      </form>
+      <div v-if="authStore.isAuthenticated">
+        <form @submit.prevent="agregarComentario">
+          <div class="rating-input">
+            <span 
+              v-for="star in [5, 4, 3, 2, 1]" 
+              :key="star"
+              class="star" 
+              :class="{ 'active': star <= nuevaValoracion }"
+              @click="nuevaValoracion = star"
+            >★</span>
+          </div>
+          <textarea 
+              id="commentText" 
+              v-model="nuevoTextoComentario" 
+              placeholder="Escribe tu reseña como experto..." 
+              required
+          ></textarea>
+          <button type="submit" class="btn-reserva btn-small" :disabled="enviandoReview">
+            {{ enviandoReview ? 'Publicando...' : 'Publicar Reseña' }}
+          </button>
+        </form>
+      </div>
+      <p v-else style="color: #b8860b; margin-bottom: 20px;">
+        <RouterLink to="/login" style="color: gold;">Inicia sesión</RouterLink> para dejar una reseña.
+      </p>
+
+      <div v-if="loadingReviews" style="color: gold; text-align: center; padding: 20px;">
+        Cargando reseñas...
+      </div>
 
       <div class="margin-top-40">
         <div v-for="c in comentarios" :key="c.id" class="comment-card">
@@ -74,15 +85,20 @@
             </span>
           </div>
           <p style="color:white; margin:0 0 15px 0; line-height:1.6;">{{ c.texto }}</p>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <small style="color:#666;">{{ c.fecha }}</small>
-            <button @click="borrarComentario(c.id)" class="btn-delete">BORRAR MI RESEÑA</button>
-          </div>
+          <small style="color:#666;">{{ c.fecha }}</small>
         </div>
+
+        <p v-if="!loadingReviews && comentarios.length === 0" style="color: #666; text-align: center;">
+          Aún no hay reseñas. ¡Sé el primero en opinar!
+        </p>
       </div>
     </section>
   </main>
   
+  <div v-else-if="loadingVehicle" style="padding: 150px; text-align: center; color: white;">
+    <h2>Cargando vehículo...</h2>
+  </div>
+
   <div v-else style="padding: 150px; text-align: center; color: white;">
     <h2>Vehículo no encontrado</h2>
   </div>
@@ -91,36 +107,57 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { vehiclesData } from '@/data/vehicles';
+import { useAuthStore } from '@/modules/auth/auth';
+import http from '@/services/http.js';
 
 const route = useRoute();
-const vehicleId = ref(route.params.id);
+const authStore = useAuthStore();
+
 const vehicle = ref(null);
-
-// Estados de Favoritos
+const loadingVehicle = ref(true);
+const loadingReviews = ref(false);
 const isFavorito = ref(false);
-
-// Estados de Comentarios
 const nuevaValoracion = ref(5);
 const nuevoTextoComentario = ref('');
 const comentarios = ref([]);
+const enviandoReview = ref(false);
 
-const inicializarVehiculo = () => {
-  vehicleId.value = route.params.id;
-  
-  // Ara busquem a l'array l'element que coincideixi amb l'id
-  vehicle.value = vehiclesData.find(v => v.id === vehicleId.value);
-  
-  if (vehicle.value) {
+const fetchVehicle = async (id) => {
+  loadingVehicle.value = true;
+  vehicle.value = null;
+  try {
+    const response = await http.get(`/products/${id}`);
+    vehicle.value = response.data.data;
     comprobarFavorito();
-    cargarComentariosSimulados();
+    await fetchReviews(id);
+  } catch (err) {
+    console.error('Error al cargar vehículo:', err);
+  } finally {
+    loadingVehicle.value = false;
   }
 };
 
-// --- MECÁNICA: FAVORITOS ---
+const fetchReviews = async (id) => {
+  loadingReviews.value = true;
+  try {
+    const response = await http.get(`/products/${id}/reviews`);
+    comentarios.value = response.data.data.map(r => ({
+      id: r.id,
+      usuario: r.usuario || 'Anónimo',
+      estrellas: r.stars,
+      texto: r.comment,
+      fecha: r.review_date,
+    }));
+  } catch (err) {
+    console.error('Error al cargar reseñas:', err);
+  } finally {
+    loadingReviews.value = false;
+  }
+};
+
 const comprobarFavorito = () => {
-  let favoritos = JSON.parse(localStorage.getItem('misFavoritos')) || [];
-  isFavorito.value = favoritos.includes(vehicle.value.name);
+  const favoritos = JSON.parse(localStorage.getItem('misFavoritos')) || [];
+  isFavorito.value = favoritos.includes(vehicle.value?.name);
 };
 
 const toggleFavorito = () => {
@@ -135,45 +172,37 @@ const toggleFavorito = () => {
   localStorage.setItem('misFavoritos', JSON.stringify(favoritos));
 };
 
-// --- MECÁNICA: COMENTARIOS REACTIVOS ---
-const cargarComentariosSimulados = () => {
-  comentarios.value = [
-    {
-      id: 1,
-      usuario: "ExpertoMotor",
-      estrellas: 5,
-      texto: `Impresionante rendimiento del ${vehicle.value.name}. La respuesta de su motor es espectacular.`,
-      fecha: "2026-05-25"
-    }
-  ];
-};
-
-const agregarComentario = () => {
-  const nuevo = {
-    id: Date.now(),
-    usuario: "Usuario_Sesion", 
-    estrellas: nuevaValoracion.value,
-    texto: nuevoTextoComentario.value,
-    fecha: new Date().toISOString().split('T')[0]
-  };
-  
-  comentarios.value.unshift(nuevo);
-  nuevoTextoComentario.value = '';
-  nuevaValoracion.value = 5;
-};
-
-const borrarComentario = (id) => {
-  if (confirm("¿Eliminar tu comentario permanentemente?")) {
-    comentarios.value = comentarios.value.filter(c => c.id !== id);
+const agregarComentario = async () => {
+  if (!authStore.isAuthenticated) return;
+  enviandoReview.value = true;
+  try {
+    const response = await http.post(`/products/${route.params.id}/reviews`, {
+      stars: nuevaValoracion.value,
+      comment: nuevoTextoComentario.value,
+    });
+    const r = response.data.data;
+    comentarios.value.unshift({
+      id: r.id,
+      usuario: r.usuario || authStore.user?.name || 'Tú',
+      estrellas: r.stars,
+      texto: r.comment,
+      fecha: r.review_date,
+    });
+    nuevoTextoComentario.value = '';
+    nuevaValoracion.value = 5;
+  } catch (err) {
+    console.error('Error al publicar reseña:', err);
+    alert('No se pudo publicar la reseña. Inténtalo de nuevo.');
+  } finally {
+    enviandoReview.value = false;
   }
 };
 
-// Observar si la ruta cambia de coche/moto/clásico para refrescar los datos
-watch(() => route.params.id, () => {
-  inicializarVehiculo();
+watch(() => route.params.id, (newId) => {
+  if (newId) fetchVehicle(newId);
 });
 
 onMounted(() => {
-  inicializarVehiculo();
+  fetchVehicle(route.params.id);
 });
 </script>

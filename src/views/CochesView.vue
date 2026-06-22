@@ -25,9 +25,11 @@
       </div>
 
       <h2 class="coches-titulo">
-        {{ searchQuery ? 'Resultats de la cerca' : 'Coches Destacados' }}
+        {{ searchQuery ? 'Resultados de la búsqueda' : 'Coches Destacados' }}
       </h2>
       <br>
+
+      <div v-if="loading" style="text-align:center; color: gold; padding: 40px;">Cargando...</div>
 
       <div class="coches-tienda">
         <VehicleCard 
@@ -43,19 +45,23 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import VehicleCard from '@/components/VehicleCard.vue';
-import api from '@/api'; // La instància d'Axios que vam crear abans
+import http from '@/services/http.js';
 
 const searchQuery = ref('');
-const coches = ref([]); // Comencem amb l'array buit
+const coches = ref([]);
+const loading = ref(false);
 
-// Carreguem les dades del backend només quan el component es munta
 onMounted(async () => {
+  loading.value = true;
   try {
-    const response = await api.get('/vehicles');
-    // Filtrem la categoria aquí o directament al backend (recomanat)
-    coches.value = response.data.filter(v => v.category === 'Coches de Lujo');
+    const response = await http.get('/products', {
+      params: { category: 'Coches de Lujo', per_page: 50 }
+    });
+    coches.value = response.data.data;
   } catch (error) {
-    console.error("Error al carregar els vehicles:", error);
+    console.error('Error al cargar los coches:', error);
+  } finally {
+    loading.value = false;
   }
 });
 

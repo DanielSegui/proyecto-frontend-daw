@@ -4,33 +4,81 @@
     
     <input v-model="searchQuery" placeholder="Buscar modelo..." class="search-bar">
 
-    <div class="coches-tienda">
-      <RouterLink 
+    <div v-if="loading" style="text-align:center; color: gold; padding: 40px;">
+      Cargando vehículos...
+    </div>
+
+    <div v-else-if="error" style="text-align:center; color: #ff4444; padding: 40px;">
+      Error al cargar el catálogo. Inténtalo de nuevo.
+    </div>
+
+    <div v-else class="coches-tienda">
+      <VehicleCard 
         v-for="v in filteredVehicles" 
         :key="v.id" 
-        :to="`/coches/${v.id}`"
-        class="card-wrapper"
-      >
-        <VehicleCard :vehicle="v" />
-      </RouterLink>
+        :vehicle="v" 
+      />
+    </div>
+
+    <div v-if="!loading && !error && totalPages > 1" class="pagination">
+      <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1">Anterior</button>
+      <span style="color: gold; padding: 0 15px;">Página {{ currentPage }} / {{ totalPages }}</span>
+      <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages">Siguiente</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { vehiclesData } from '@/data/vehicles';
+import { ref, computed, onMounted, watch } from 'vue';
 import VehicleCard from '@/components/VehicleCard.vue';
+import http from '@/services/http.js';
 
 const searchQuery = ref('');
+const vehicles = ref([]);
+const loading = ref(false);
+const error = ref(false);
+const currentPage = ref(1);
+const totalPages = ref(1);
+
+const fetchVehicles = async (page = 1) => {
+  loading.value = true;
+  error.value = false;
+  try {
+    const params = { page };
+    if (searchQuery.value.trim()) {
+      params.q = searchQuery.value.trim();
+    }
+    const response = await http.get('/products', { params });
+    vehicles.value = response.data.data;
+    totalPages.value = response.data.meta?.last_page || 1;
+    currentPage.value = response.data.meta?.current_page || 1;
+  } catch (err) {
+    console.error('Error al cargar catálogo:', err);
+    error.value = true;
+  } finally {
+    loading.value = false;
+  }
+};
 
 const filteredVehicles = computed(() => {
-  const query = searchQuery.value.toLowerCase();
-  return Object.keys(vehiclesData).map(id => ({
-    id,
-    ...vehiclesData[id]
-  })).filter(v => v.name.toLowerCase().includes(query));
+  if (!searchQuery.value.trim()) return vehicles.value;
+  const q = searchQuery.value.toLowerCase();
+  return vehicles.value.filter(v => v.name.toLowerCase().includes(q));
 });
+
+const changePage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    fetchVehicles(page);
+  }
+};
+
+let searchTimeout = null;
+watch(searchQuery, () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => fetchVehicles(1), 400);
+});
+
+onMounted(() => fetchVehicles(1));
 </script>
 
 <style scoped>
@@ -63,17 +111,25 @@ const filteredVehicles = computed(() => {
   margin: 0 auto;
 }
 
-/* El truco para que la tarjeta sea clicable y tenga efecto profesional */
-.card-wrapper {
-  text-decoration: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: block;
-  border-radius: 12px;
-  overflow: hidden;
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 40px;
 }
 
-.card-wrapper:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 10px 20px rgba(184, 134, 11, 0.3);
+.pagination button {
+  background: #b8860b;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>

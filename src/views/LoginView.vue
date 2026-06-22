@@ -12,9 +12,9 @@
       </p>
 
       <input 
-        type="text" 
-        v-model="nomUsuari" 
-        placeholder="Nombre de usuario"
+        type="email" 
+        v-model="email" 
+        placeholder="Email"
         required
       ><br>
       
@@ -25,7 +25,9 @@
         required
       ><br>
 
-      <button type="submit">Iniciar sesión</button>
+      <button type="submit" :disabled="loading">
+        {{ loading ? 'Iniciando...' : 'Iniciar sesión' }}
+      </button>
       
       <button type="button" class="button" @click="irARegistro">
         ¿No tienes cuenta? Regístrate
@@ -43,41 +45,41 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../modules/auth/auth.js'
+import http from '../services/http.js'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const nomUsuari = ref('')
+const email = ref('')
 const contrasenya = ref('')
 const errorMessage = ref('')
+const loading = ref(false)
 
-const handleLogin = () => {
-  if (!nomUsuari.value || !contrasenya.value) {
-    errorMessage.value = "Todos los campos son obligatorios."
+const handleLogin = async () => {
+  if (!email.value || !contrasenya.value) {
+    errorMessage.value = 'Todos los campos son obligatorios.'
     return
   }
 
-  // 1. Simulamos la respuesta con la estructura exacta que tendrá Laravel
-  const rol = nomUsuari.value.toLowerCase().includes('admin') ? 'admin' : 'client'
-  
-  const datosUsuarioSimulados = {
-    nom_usuari: nomUsuari.value,
-    name: nomUsuari.value, // Dejamos name por si acaso lo usa el header
-    nom: 'Daniel',         // Ponemos tu nombre de pruebas
-    cognoms: 'García',     // Ponemos tus apellidos para que no salga vacío
-    role: rol,
-    email: `${nomUsuari.value.toLowerCase()}@gmail.com`, // Un email más real
-    avatar: '/imgs/menu1.png'
-  }
-  
-  const tokenSimulado = "token_falso_sprint4_123456"
+  loading.value = true
+  errorMessage.value = ''
 
-  // 2. Ejecutamos TU función real del store
-  authStore.setAuth(datosUsuarioSimulados, tokenSimulado)
-  
-  // 3. Redirigimos al perfil (Ojo: asegúrate de que la ruta en tu router es /perfil o /profile)
-  router.push('/perfil') 
+  try {
+    const response = await http.post('/login', {
+      email: email.value,
+      password: contrasenya.value,
+    })
+    authStore.setAuth(response.data.user, response.data.token)
+    router.push('/perfil')
+  } catch (error) {
+    errorMessage.value =
+      error.response?.data?.message ||
+      error.response?.data?.errors?.email?.[0] ||
+      'Credenciales incorrectas.'
+  } finally {
+    loading.value = false
+  }
 }
 
 const irARegistro = () => {

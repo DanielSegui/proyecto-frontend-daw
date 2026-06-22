@@ -10,8 +10,8 @@
 
       <input 
         type="text" 
-        v-model="nomUsuari" 
-        placeholder="Nombre Usuario"
+        v-model="name" 
+        placeholder="Nombre completo"
         required
       ><br><br>
 
@@ -25,24 +25,13 @@
       <input 
         type="password" 
         v-model="contrasenya" 
-        placeholder="Contraseña" 
+        placeholder="Contraseña (mín. 8 caracteres)" 
         required
       ><br><br>
 
-      <input 
-        type="text" 
-        v-model="nom" 
-        placeholder="Nombre" 
-        required
-      ><br><br>
-
-      <input 
-        type="text" 
-        v-model="cognoms" 
-        placeholder="Apellidos"
-      ><br><br>
-
-      <button type="submit">Registrarse</button>
+      <button type="submit" :disabled="loading">
+        {{ loading ? 'Registrando...' : 'Registrarse' }}
+      </button>
       
       <button type="button" class="button" @click="irALogin">
         ¿Ya tienes cuenta? Inicia sesión aquí
@@ -59,27 +48,50 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../modules/auth/auth.js'
+import http from '../services/http.js'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-// Estados reactivos basados en tu base de datos JSON
-const nomUsuari = ref('')
+const name = ref('')
 const email = ref('')
 const contrasenya = ref('')
-const nom = ref('')
-const cognoms = ref('')
 const errorMessage = ref('')
+const loading = ref(false)
 
-const handleRegister = () => {
-  if (!nomUsuari.value || !email.value || !contrasenya.value || !nom.value) {
+const handleRegister = async () => {
+  if (!name.value || !email.value || !contrasenya.value) {
     errorMessage.value = 'Por favor rellena todos los campos obligatorios.'
     return
   }
 
-  errorMessage.value = ""
+  if (contrasenya.value.length < 8) {
+    errorMessage.value = 'La contraseña debe tener al menos 8 caracteres.'
+    return
+  }
 
-  // Simulación: Redirigimos al login pasando el 'success' en la URL como hacía tu PHP
-  router.push({ path: '/login', query: { success: 'true' } })
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await http.post('/register', {
+      name: name.value,
+      email: email.value,
+      password: contrasenya.value,
+    })
+    authStore.setAuth(response.data.user, response.data.token)
+    router.push('/perfil')
+  } catch (error) {
+    const errors = error.response?.data?.errors
+    if (errors) {
+      errorMessage.value = Object.values(errors).flat().join(' ')
+    } else {
+      errorMessage.value = error.response?.data?.message || 'Error al registrar. Inténtalo de nuevo.'
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
 const irALogin = () => {
@@ -95,7 +107,6 @@ const irAlInicio = () => {
 @import '@/assets/user_formulari.css';
 
 .auth-form-block {
-  /* 40px arriba, auto a los lados, 100px abajo para empujar con fuerza el footer */
   margin: 40px auto 100px auto; 
   width: 100%;
   max-width: 500px; 

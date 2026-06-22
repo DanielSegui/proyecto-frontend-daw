@@ -1,24 +1,16 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 export const useAuthStore = defineStore('auth', () => {
-  // 1. TRUCO TEMPORAL: Forzamos un objeto de usuario con rol 'admin'
-  // (Originalmente tenías: ref(JSON.parse(localStorage.getItem('user')) || null);)
-  const user = ref({
-    name: 'Daniel Admin Test',
-    email: 'admin@dnmotors.com',
-    role: 'admin' // <-- Esto es lo que lee tu router guard y tu useRole.js
-  });
+  const user = ref(JSON.parse(localStorage.getItem('user')) || null);
+  const token = ref(localStorage.getItem('token') || null);
 
-  // 2. TRUCO TEMPORAL: Forzamos un token cualquiera para simular que estás logueado
-  // (Originalmente tenías: ref(localStorage.getItem('token') || null);)
-  const token = ref('token-falso-de-prueba-frontend');
-
-  // Getters: propiedades calculadas
   const isAuthenticated = computed(() => !!token.value);
   const userRole = computed(() => user.value?.role || null);
 
-  // Acciones: funciones para modificar el estado
   function setAuth(userData, userToken) {
     user.value = userData;
     token.value = userToken;
@@ -26,7 +18,14 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('token', userToken);
   }
 
-  function logout() {
+  async function logout() {
+    if (token.value) {
+      try {
+        await axios.post(`${API_URL}/logout`, {}, {
+          headers: { Authorization: `Bearer ${token.value}` }
+        });
+      } catch {}
+    }
     user.value = null;
     token.value = null;
     localStorage.removeItem('user');

@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  // Aquesta URL vindrà del teu fitxer .env
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000'
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 });
 
 export default api;
